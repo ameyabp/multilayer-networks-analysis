@@ -57,7 +57,7 @@ export default function Home() {
 
         const layer = new ScatterplotLayer({
         id: 'scatterplot-layer',
-        data: filteredData,
+        data: filteredData, // temporary
         getPosition: d => [d.Long1, d.Lat1],
         getFillColor: [255, 0, 0],
         getRadius: 100,
