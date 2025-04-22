@@ -23,29 +23,25 @@ export default function Home() {
   const [data, setNodes] = useState<NodeData[] | undefined>(undefined);
 
   useEffect(() => {
-    fetch('/igraph_generated_layouts/graph_layout_random.csv')
+    fetch('http://127.0.0.1:5000/')
       .then(response => {
         if (!response.ok) throw new Error('Network error');
-        return response.text();
+        return response.json();
       })
-      .then(csvText => {
-        const result = Papa.parse<NodeData>(csvText, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true,
-        });
-        setNodes(result.data);
+      .then((data: NodeData[]) => {
+        setNodes(data);
       })
       .catch(error =>
         console.error('There has been a problem with your fetch operation:', error)
       );
-  }, []); 
+  }, []);
 
   if (data !== undefined) {
+    console.log(data)
     const layer = new ScatterplotLayer({
       id: 'scatterplot-layer',
       data,
-      getPosition: d => [d.Long1, d.Lat1],
+      getPosition: d => [d[1], d[2]],
       getFillColor: [255, 0,0],
       getRadius: 100,
       radiusMinPixels: 5,

@@ -6,9 +6,9 @@ Still under construction!
 
 ## Running Our Program
 
-In order to run Project3, navigate to the ```project3``` directory and run ```npx next dev```. After this, you should be able to view the program by navigating to ```https://localhost:3000/```.
+First, navigate to the ```flask``` directory and run the command ```python main.py```. After this, navigate to the ```project3``` directory and run ```npx next dev```. After this, you should be able to view the program by navigating to ```https://localhost:3000/```.
 
-Though still under construction, to run the Flask demo, navigate to the ```flask``` directory and run the command ```python main.py```. Will generate new CSV whenever called.
+
 
 ## Upcoming TODOS:
 

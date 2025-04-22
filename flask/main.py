@@ -1,11 +1,16 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import pandas as pd
 import networkx as nx
 import igraph as ig
+from flask_cors import CORS
+
+
+# NOTE: At least on my local machine, Flask runs at http://127.0.0.1:5000/
 
 # Flask constructor takes the name of 
 # current module (__name__) as argument.
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
 # The route() function of the Flask class is a decorator, 
 # which tells the application which URL should call 
@@ -71,7 +76,7 @@ def visualize_frankenstein_igraph(layout_type: str = "random"):
     print("finished adding to the stupid spreadsheet that i hate")
 
     # Has to return something aparently or else Flask freaks out at you! Found this out the hard way!
-    return layout.coords
+    return jsonify(data)
 
 # main driver function
 if __name__ == '__main__':
