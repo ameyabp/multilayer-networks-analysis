@@ -14,20 +14,16 @@ type NodeData = {
 const INITIAL_VIEW_STATE = {
   longitude: 0,
   latitude: 0,
-  zoom: 3,
+  zoom: 5,
+  pitch: 0,
+  bearing: 0
 };
 
 export default function Home() {
-  const [nodes, setNodes] = useState<NodeData[] | null>(null);
-  const data = [
-  {Long1: -123.4, Lat1: 37.8, color: [0, 0, 255] }
-];
-console.log(data);
-console.log(nodes);
-
+  const [data, setNodes] = useState<NodeData[] | undefined>(undefined);
 
   useEffect(() => {
-    fetch('/graph_layout_star.csv')
+    fetch('/igraph_generated_layouts/graph_layout_random.csv')
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.text();
@@ -43,21 +39,27 @@ console.log(nodes);
       .catch(error =>
         console.error('There has been a problem with your fetch operation:', error)
       );
-  }, []);
-  const layer = new ScatterplotLayer({
-    id: 'scatterplot-layer',
-    // data works --> why not the file data?
-    nodes,
-    getPosition: d => [d.Long1, d.Lat1],
-    getFillColor: [255, 0,0],
-    getRadius: 100000,
-  });
-  console.log(layer);
-  return (
-    <DeckGL
-      initialViewState={INITIAL_VIEW_STATE}
-      controller={true}
-      layers= {[layer]}
-    />
-  );
+  }, []); 
+
+  if (data !== undefined) {
+    const layer = new ScatterplotLayer({
+      id: 'scatterplot-layer',
+      data,
+      getPosition: d => [d.Long1, d.Lat1],
+      getFillColor: [255, 0,0],
+      getRadius: 100,
+      radiusMinPixels: 5,
+    });
+    console.log(layer);
+    return (
+      <DeckGL
+        initialViewState={INITIAL_VIEW_STATE}
+        controller={true}
+        layers= {[layer]}
+      />
+    );
+  } else {
+    return <p>loading...</p>;
+  }
+  
 }
