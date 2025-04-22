@@ -26,6 +26,9 @@ export default function Home() {
         setLayout(event.target.value);
     };
 
+    const [search, setSearch] = useState<string>("");
+
+
     useEffect(() => {
         fetch(`/igraph_generated_layouts/${layout}`)
         .then(response => {
@@ -46,9 +49,15 @@ export default function Home() {
     }, [layout]);
 
     if (data !== undefined) {
+        /*TEMPORARY PLACEHOLDER*/
+        const filteredData = data.filter(d => {
+            if (!search.trim()) return true;
+            return d.Node.toString().includes(search.trim());
+        });
+
         const layer = new ScatterplotLayer({
         id: 'scatterplot-layer',
-        data,
+        data: filteredData,
         getPosition: d => [d.Long1, d.Lat1],
         getFillColor: [255, 0, 0],
         getRadius: 100,
@@ -58,16 +67,25 @@ export default function Home() {
         return (
         <div>
             <div className="absolute top-4 right-4 z-50">
-            <select
-                className="p-2 border rounded bg-black text-white shadow"
-                value={layout}
-                onChange={handleLayoutChange}
-            >
-                <option value="graph_layout_circular.csv">Circular</option>
-                <option value="graph_layout_fr.csv">Fruchterman-Reingold</option>
-                <option value="graph_layout_random.csv">Random</option>
-                <option value="graph_layout_star.csv">Star</option>
-            </select>
+                <select
+                    className="p-2 border rounded bg-black text-white shadow"
+                    value={layout}
+                    onChange={handleLayoutChange}
+                >
+                    <option value="graph_layout_circular.csv">Circular</option>
+                    <option value="graph_layout_fruchterman_reingold.csv">Fruchterman-Reingold</option>
+                    <option value="graph_layout_random.csv">Random</option>
+                    <option value="graph_layout_star.csv">Star</option>
+                </select>
+
+                {/*TEMPORARY PLACEHOLDER*/}
+                <input
+                    type="text"
+                    placeholder="Query"
+                    className="p-2 border rounded bg-black text-white shadow w-32"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
 
             <DeckGL
