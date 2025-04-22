@@ -12,11 +12,28 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
+@app.route('/random')
+def rand():
+    return visualize_frankenstein_igraph("random")
+
+@app.route('/circular')
+def circular():
+    return visualize_frankenstein_igraph("circular")
+
+@app.route('/fruchterman_reingold')
+def fr():
+    return visualize_frankenstein_igraph("fruchterman_reingold")
+
+@app.route('/star')
+def star():
+    return visualize_frankenstein_igraph("star")
+
 # The route() function of the Flask class is a decorator, 
 # which tells the application which URL should call 
 # the associated function.
-@app.route('/')
+
 # So it looks like we can add routes above to have a lot of Python integrations!
+@app.route('/')
 def visualize_frankenstein_igraph(layout_type: str = "random"):
     """
     More details about the layout algorithms I'll be using can be found here:
@@ -55,7 +72,7 @@ def visualize_frankenstein_igraph(layout_type: str = "random"):
         layout = g.layout_circle()
     elif layout_type == "fruchterman_reingold":
         layout = g.layout_fruchterman_reingold()
-    elif layout_type == "kamada_kawai":
+    elif layout_type == "star":
         layout = g.layout_drl()
     else:
         print(f"Unknown layout type: {layout_type}")
