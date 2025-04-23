@@ -19,12 +19,7 @@ def rand():
     Generates a random layout for a graph based on the data in 'frank_data.csv'.
 
     returns:
-        JSON response with node coordinates in the format:
-        [
-            {"Node": "node1", "Long1": x1, "Lat1": y1},
-            {"Node": "node2", "Long1": x2, "Lat1": y2},
-            ...
-        ]
+        JSON response with random node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
     """
     return visualize_igraph("random")
 
@@ -34,12 +29,7 @@ def circular():
     Generates a circular layout for a graph based on the data in 'frank_data.csv'.
 
     returns:
-        JSON response with node coordinates in the format:
-        [
-            {"Node": "node1", "Long1": x1, "Lat1": y1},
-            {"Node": "node2", "Long1": x2, "Lat1": y2},
-            ...
-        ]
+        JSON response with circular node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
     """
     return visualize_igraph("circular")
 
@@ -49,12 +39,7 @@ def fr():
     Generates a FR layout for a graph based on the data in 'frank_data.csv'.
 
     returns:
-        JSON response with node coordinates in the format:
-        [
-            {"Node": "node1", "Long1": x1, "Lat1": y1},
-            {"Node": "node2", "Long1": x2, "Lat1": y2},
-            ...
-        ]
+        JSON response with FR node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
     """
     return visualize_igraph("fruchterman_reingold")
 
@@ -64,12 +49,7 @@ def star():
     Generates a star layout for a graph based on the data in 'frank_data.csv'.
 
     returns:
-        JSON response with node coordinates in the format:
-        [
-            {"Node": "node1", "Long1": x1, "Lat1": y1},
-            {"Node": "node2", "Long1": x2, "Lat1": y2},
-            ...
-        ]
+        JSON response with star node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
     """
     return visualize_igraph("star")
 
@@ -83,12 +63,7 @@ def visualize_igraph(layout_type: str = "random"):
         layout_type (str): The type of layout to use. Options are "random", "circular", "fruchterman_reingold", and "star". Defaults to random.
 
     returns:
-        JSON response with node coordinates in the format:
-        [
-            {"Node": "node1", "Long1": x1, "Lat1": y1},
-            {"Node": "node2", "Long1": x2, "Lat1": y2},
-            ...
-        ]
+        JSON response with node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
     """    
 
     try:
