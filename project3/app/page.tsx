@@ -28,9 +28,10 @@ const INITIAL_VIEW_STATE = {
 export default function Home() {
     const [node_data, setNodes] = useState<NodeData[] | undefined>(undefined);
     const [edge_data, setEdges] = useState<EdgeData[] | undefined>(undefined);
-    const [layout, setLayout] = useState<string>("circular");
+    const [layout, setLayout] = useState<string>("random");
     const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setLayout(event.target.value);
+        setNodes(undefined);
     };
 
   const [search, setSearch] = useState<string>("");
@@ -86,10 +87,16 @@ export default function Home() {
                     value={layout}
                     onChange={handleLayoutChange}
                 >
-                    <option value="circular">Circular</option>
-                    <option value="fruchterman_reingold">Fruchterman-Reingold</option>
                     <option value="random">Random</option>
+                    <option value="circle">Circle</option>
+                    <option value="fruchterman_reingold">Fruchterman-Reingold</option>
                     <option value="star">Star</option>
+                    <option value="grid">Grid</option>
+                    <option value="drl">Drl</option>
+                    <option value="kamada_kawai">Kamada Kawai</option>
+                    <option value="graphopt">Graphopt</option>
+                    <option value="davidson_harel">Davidson Harel</option>
+                    <option value="sugiyama">Sugiyama</option>
                 </select>
 
                 {/*TEMPORARY PLACEHOLDER*/}
@@ -110,6 +117,8 @@ export default function Home() {
             />
         </div>
         );
+    } else if (edge_data){
+        return <p>Rerendering with new layout...</p>
     } else {
         return <p>Loading...</p>;
     }

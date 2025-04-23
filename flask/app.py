@@ -13,57 +13,29 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
-@app.route('/random')
-def rand():
-    """
-    Generates a random layout for a graph based on the data in 'frank_data.csv'.
-
-    returns:
-        JSON response with random node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
-    """
-    return visualize_igraph("random")
-
-@app.route('/circular')
-def circular():
-    """
-    Generates a circular layout for a graph based on the data in 'frank_data.csv'.
-
-    returns:
-        JSON response with circular node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
-    """
-    return visualize_igraph("circular")
-
-@app.route('/fruchterman_reingold')
-def fr():
-    """
-    Generates a FR layout for a graph based on the data in 'frank_data.csv'.
-
-    returns:
-        JSON response with FR node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
-    """
-    return visualize_igraph("fruchterman_reingold")
-
-@app.route('/star')
-def star():
-    """
-    Generates a star layout for a graph based on the data in 'frank_data.csv'.
-
-    returns:
-        JSON response with star node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
-    """
-    return visualize_igraph("star")
-
 # Default route, defaults to "random as of yet"
-@app.route('/')
+@app.route('/<layout_type>')
 def visualize_igraph(layout_type: str = "random"):
     """
     Generates an igraph layout for a graph based on the data in 'frank_data.csv'.
 
     args:
-        layout_type (str): The type of layout to use. Options are "random", "circular", "fruchterman_reingold", and "star". Defaults to random.
+        layout_type (str): The type of layout to use. Supports most layouts listed in igraph documentation.
+            Please note that the input is simply the last word in the function name (i.e. to use "igraph.layout_random", use "random" as the input).
+            Defaults to "random", and has following options:
+            - random
+            - circle
+            - fruchterman_reingold
+            - star
+            - grid
+            - kamada_kaway
+            - graphopt
+            - drl
+            - davidson_harel
+            - sugiyama
 
     returns:
-        JSON response with node coordinates in the format (node_id, x, y) and edge coordinates in the format (source, target).
+        JSON response with a tuple containing node data & edge data.
     """    
 
     try:
@@ -91,15 +63,28 @@ def visualize_igraph(layout_type: str = "random"):
     # it doesn't take 20 hours to process!
     g = ig.Graph.from_networkx(G)
 
+    # So many if statements!!
     print("Laying out")
     if layout_type == "random":
         layout = g.layout_random()
-    elif layout_type == "circular":
+    elif layout_type == "circle":
         layout = g.layout_circle()
     elif layout_type == "fruchterman_reingold":
         layout = g.layout_fruchterman_reingold()
     elif layout_type == "star":
+        layout = g.layout_star()
+    elif layout_type == "grid":
+        layout = g.layout_grid()
+    elif layout_type == "drl":
         layout = g.layout_drl()
+    elif layout_type == "kamada_kawai":
+        layout = g.layout_kamada_kawai()
+    elif layout_type == "graphopt":
+        layout = g.layout_graphopt()
+    elif layout_type == "davidson_harel":
+        layout = g.layout_davidson_harel()
+    elif layout_type == "sugiyama":
+        layout = g.layout_sugiyama()
     else:
         print(f"Unknown layout type: {layout_type}")
         return
@@ -120,14 +105,7 @@ def visualize_igraph(layout_type: str = "random"):
     # If you want edge coordinates (for plotting):
     edge_data = [ [layout[source], layout[target]] for source, target in edges ]
 
-    print(edge_data)
-
     return jsonify((node_data, edge_data))
 
-
-# main driver function
 if __name__ == '__main__':
-
-    # run() method of Flask class runs the application 
-    # on the local development server.
     app.run()
