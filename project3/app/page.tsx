@@ -1,7 +1,7 @@
 "use client";
 
 import { DeckGL } from '@deck.gl/react';
-import { ScatterplotLayer } from '@deck.gl/layers';
+import { ScatterplotLayer, LineLayer } from '@deck.gl/layers';
 import { useState, useEffect } from 'react';
 import * as Papa from 'papaparse';
 
@@ -9,6 +9,12 @@ type NodeData = {
     Node: number;
     Long1: number;
     Lat1: number;
+};
+
+type EdgeData = {
+    Edge: number;
+    FromCoordinates: [number, number];
+    ToCoordinates: [number, number];
 };
 
 const INITIAL_VIEW_STATE = {
@@ -20,7 +26,8 @@ const INITIAL_VIEW_STATE = {
 };
 
 export default function Home() {
-    const [data, setNodes] = useState<NodeData[] | undefined>(undefined);
+    const [node_data, setNodes] = useState<NodeData[] | undefined>(undefined);
+    const [edge_data, setEdges] = useState<EdgeData[] | undefined>(undefined);
     const [layout, setLayout] = useState<string>("circular");
     const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setLayout(event.target.value);
@@ -34,23 +41,25 @@ export default function Home() {
         if (!response.ok) throw new Error('Network error');
         return response.json();
       })
-      .then((data: NodeData[]) => {
-        setNodes(data);
+      .then((data: ([NodeData[], EdgeData[]])) => {
+        setNodes(data[0]);
+        console.log(data[1]);
+        setEdges(data[1]);
       })
       .catch(error =>
         console.error('There has been a problem with your fetch operation:', error)
       );
   }, [layout]);
 
-    if (data !== undefined) {
+    if (node_data !== undefined) {
         /*TEMPORARY PLACEHOLDER*/
-        const filteredData = data.filter(d => {
+        const filteredData = node_data.filter(d => {
             if (!search.trim()) return true;
             return d.Node.toString().includes(search.trim());
         });
 
         
-        const layer = new ScatterplotLayer({
+        const node_layer = new ScatterplotLayer({
             id: layout,
             data: filteredData, // temporary
             getPosition: d => [d[1], d[2]],
@@ -58,6 +67,16 @@ export default function Home() {
             getRadius: 100,
             radiusMinPixels: 5,
         });
+
+        const edge_layer = new LineLayer({
+            id: 'LineLayer',
+            data: edge_data,
+            getColor: d => [0, 0, 255],
+            getSourcePosition: d => d[0],
+            getTargetPosition: d => d[1],
+            getWidth: 1,
+            pickable: true
+          });
 
         return (
         <div>
@@ -86,7 +105,7 @@ export default function Home() {
             <DeckGL
                 initialViewState={INITIAL_VIEW_STATE}
                 controller={true}
-                layers={[layer]}
+                layers={[edge_layer, node_layer]}
                 key={layout}
             />
         </div>

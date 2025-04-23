@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 
 # NOTE: At least on my local machine, Flask runs at http://127.0.0.1:5000/
+# TODO: Support more than just Frankenstein dataset from CSV.
 
 # Flask constructor takes the name of 
 # current module (__name__) as argument.
@@ -14,30 +15,80 @@ CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
 @app.route('/random')
 def rand():
-    return visualize_frankenstein_igraph("random")
+    """
+    Generates a random layout for a graph based on the data in 'frank_data.csv'.
+
+    returns:
+        JSON response with node coordinates in the format:
+        [
+            {"Node": "node1", "Long1": x1, "Lat1": y1},
+            {"Node": "node2", "Long1": x2, "Lat1": y2},
+            ...
+        ]
+    """
+    return visualize_igraph("random")
 
 @app.route('/circular')
 def circular():
-    return visualize_frankenstein_igraph("circular")
+    """
+    Generates a circular layout for a graph based on the data in 'frank_data.csv'.
+
+    returns:
+        JSON response with node coordinates in the format:
+        [
+            {"Node": "node1", "Long1": x1, "Lat1": y1},
+            {"Node": "node2", "Long1": x2, "Lat1": y2},
+            ...
+        ]
+    """
+    return visualize_igraph("circular")
 
 @app.route('/fruchterman_reingold')
 def fr():
-    return visualize_frankenstein_igraph("fruchterman_reingold")
+    """
+    Generates a FR layout for a graph based on the data in 'frank_data.csv'.
+
+    returns:
+        JSON response with node coordinates in the format:
+        [
+            {"Node": "node1", "Long1": x1, "Lat1": y1},
+            {"Node": "node2", "Long1": x2, "Lat1": y2},
+            ...
+        ]
+    """
+    return visualize_igraph("fruchterman_reingold")
 
 @app.route('/star')
 def star():
-    return visualize_frankenstein_igraph("star")
-
-# The route() function of the Flask class is a decorator, 
-# which tells the application which URL should call 
-# the associated function.
-
-# So it looks like we can add routes above to have a lot of Python integrations!
-@app.route('/')
-def visualize_frankenstein_igraph(layout_type: str = "random"):
     """
-    More details about the layout algorithms I'll be using can be found here:
-    https://igraph.org/c/doc/igraph-Layout.html
+    Generates a star layout for a graph based on the data in 'frank_data.csv'.
+
+    returns:
+        JSON response with node coordinates in the format:
+        [
+            {"Node": "node1", "Long1": x1, "Lat1": y1},
+            {"Node": "node2", "Long1": x2, "Lat1": y2},
+            ...
+        ]
+    """
+    return visualize_igraph("star")
+
+# Default route, defaults to "random as of yet"
+@app.route('/')
+def visualize_igraph(layout_type: str = "random"):
+    """
+    Generates an igraph layout for a graph based on the data in 'frank_data.csv'.
+
+    args:
+        layout_type (str): The type of layout to use. Options are "random", "circular", "fruchterman_reingold", and "star". Defaults to random.
+
+    returns:
+        JSON response with node coordinates in the format:
+        [
+            {"Node": "node1", "Long1": x1, "Lat1": y1},
+            {"Node": "node2", "Long1": x2, "Lat1": y2},
+            ...
+        ]
     """    
 
     try:
@@ -64,7 +115,7 @@ def visualize_frankenstein_igraph(layout_type: str = "random"):
     # I created a NetworkX graph above, but the cool thing is we can convert it to an igraph graph so
     # it doesn't take 20 hours to process!
     g = ig.Graph.from_networkx(G)
-    
+
     print("Laying out")
     if layout_type == "random":
         layout = g.layout_random()
@@ -80,16 +131,24 @@ def visualize_frankenstein_igraph(layout_type: str = "random"):
 
     print("Finished laying out")
 
-    data = []
+    node_data = []
+    edge_data = []
 
+    # Get node positions
     for idx, (x, y) in enumerate(layout.coords):
         label = g.vs[idx]["name"] if "name" in g.vs.attributes() else idx
-        data.append([label, x, y])
+        node_data.append([label, x, y])
 
-    df = pd.DataFrame(data, columns=["Node", "Long1", "Lat1"])
-    
-    # Has to return something aparently or else Flask freaks out at you! Found this out the hard way!
-    return jsonify(data)
+    # Get edge list as pairs of indices
+    edges = g.get_edgelist()
+
+    # If you want edge coordinates (for plotting):
+    edge_data = [ [layout[source], layout[target]] for source, target in edges ]
+
+    print(edge_data)
+
+    return jsonify((node_data, edge_data))
+
 
 # main driver function
 if __name__ == '__main__':

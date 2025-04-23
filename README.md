@@ -13,6 +13,5 @@ Alternatively, run the command ```./start.sh``` in the root folder to start the 
 * Integrate Neo4j.
 * Integrate querying support in browser.
 * Integrate Flask to generate coordinates for non-geological or non-coordinate based data.
-* Integrate edge & connection support.
 * Migrate from NextJS to React.
 * Implement support for general spreadsheet inputs as opposed to set data.
