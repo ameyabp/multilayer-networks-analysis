@@ -87,11 +87,7 @@ def visualize_frankenstein_igraph(layout_type: str = "random"):
         data.append([label, x, y])
 
     df = pd.DataFrame(data, columns=["Node", "Long1", "Lat1"])
-    # For now it just generates a CSV file with the layout coordinates!
-    df.to_csv(f"csvs/graph_layout_{layout_type}.csv", index=False)
-
-    print("finished adding to the stupid spreadsheet that i hate")
-
+    
     # Has to return something aparently or else Flask freaks out at you! Found this out the hard way!
     return jsonify(data)
 
