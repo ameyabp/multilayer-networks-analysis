@@ -6,9 +6,9 @@ export FLASK_APP=app.py
 flask run &
 FLASK_PID=$!
 
-# Start Next.js
-cd ../project3
-npx next dev &
+# Start React
+cd ../frontend
+npm run start &
 NEXT_PID=$!
 
 # Trap EXIT (script ends) and INT/TERM (Ctrl+C/kill) to kill background jobs

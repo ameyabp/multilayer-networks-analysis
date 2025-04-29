@@ -1,21 +1,8 @@
-"use client";
-
-import { DeckGL } from '@deck.gl/react';
+import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, LineLayer } from '@deck.gl/layers';
 import { useState, useEffect } from 'react';
-import * as Papa from 'papaparse';
-
-type NodeData = {
-    Node: number;
-    Long1: number;
-    Lat1: number;
-};
-
-type EdgeData = {
-    Edge: number;
-    FromCoordinates: [number, number];
-    ToCoordinates: [number, number];
-};
+import './components.css'
+// import * as Papa from 'papaparse';
 
 const INITIAL_VIEW_STATE = {
     longitude: 0,
@@ -26,15 +13,15 @@ const INITIAL_VIEW_STATE = {
 };
 
 export default function Home() {
-    const [node_data, setNodes] = useState<NodeData[] | undefined>(undefined);
-    const [edge_data, setEdges] = useState<EdgeData[] | undefined>(undefined);
-    const [layout, setLayout] = useState<string>("random");
-    const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const [node_data, setNodes] = useState(undefined);
+    const [edge_data, setEdges] = useState(undefined);
+    const [layout, setLayout] = useState("random");
+    const handleLayoutChange = (event) => {
         setLayout(event.target.value);
         setNodes(undefined);
     };
 
-  const [search, setSearch] = useState<string>("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/${layout}`)
@@ -42,7 +29,7 @@ export default function Home() {
         if (!response.ok) throw new Error('Network error');
         return response.json();
       })
-      .then((data: ([NodeData[], EdgeData[]])) => {
+      .then((data) => {
         setNodes(data[0]);
         console.log(data[1]);
         setEdges(data[1]);
@@ -81,7 +68,7 @@ export default function Home() {
 
         return (
         <div>
-            <div className="absolute top-4 right-4 z-50">
+            <div className="Select">
                 <select
                     className="p-2 border rounded bg-black text-white shadow"
                     value={layout}
@@ -108,16 +95,18 @@ export default function Home() {
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
-
+            <div className="DeckGL">
             <DeckGL
                 initialViewState={INITIAL_VIEW_STATE}
                 controller={true}
                 layers={[edge_layer, node_layer]}
                 key={layout}
             />
+            </div>
         </div>
         );
     } else if (edge_data){
+        /** While we're waiting for the Flask call */
         return <p>Rerendering with new layout...</p>
     } else {
         return <p>Loading...</p>;
