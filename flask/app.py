@@ -11,7 +11,7 @@ from flask_cors import CORS
 # Flask constructor takes the name of 
 # current module (__name__) as argument.
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Default route, defaults to "random as of yet"
 @app.route('/<layout_type>')

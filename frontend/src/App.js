@@ -2,6 +2,7 @@ import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, LineLayer } from '@deck.gl/layers';
 import { useState, useEffect } from 'react';
 import './components.css'
+import neo4j from 'neo4j-driver';
 // import * as Papa from 'papaparse';
 
 const INITIAL_VIEW_STATE = {
@@ -15,23 +16,50 @@ const INITIAL_VIEW_STATE = {
 export default function Home() {
     const [node_data, setNodes] = useState(undefined);
     const [edge_data, setEdges] = useState(undefined);
+    const [query, setQuery] = useState("");
+    const [queryResults, setQueryResults] = useState("");
     const [layout, setLayout] = useState("random");
     const handleLayoutChange = (event) => {
         setLayout(event.target.value);
         setNodes(undefined);
     };
 
-  const [search, setSearch] = useState("");
+  
+  
+
+  const uri = 'bolt://localhost:7687';
+  const user = 'neo4j';
+  const password = 'PASSWORD';
+
+  const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+
+  const handleQuertyChange = (event) => {
+    setQuery(event.target.value);
+    const session = driver.session();
+    console.log("Querying Neo4j...");
+    session.run(query)
+    .then(result => {
+        console.log(result.records[0].get('nodeCount').toNumber());
+        setQueryResults(result.records[0].get('nodeCount').toNumber());
+        })
+    .catch(error => {
+            console.error(error);
+            })
+    .finally(() => {
+            session.close();
+            driver.close();
+            });
+}
+
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000/${layout}`)
+    fetch(`http://127.0.0.1:5000//${layout}`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
       })
       .then((data) => {
         setNodes(data[0]);
-        console.log(data[1]);
         setEdges(data[1]);
       })
       .catch(error =>
@@ -41,10 +69,10 @@ export default function Home() {
 
     if (node_data !== undefined) {
         /*TEMPORARY PLACEHOLDER*/
-        const filteredData = node_data.filter(d => {
-            if (!search.trim()) return true;
-            return d.Node.toString().includes(search.trim());
-        });
+        const filteredData = node_data //.filter(d => {
+        //     if (!query.trim()) return true;
+        //     return d.Node.toString().includes(query.trim());
+        // });
 
         
         const node_layer = new ScatterplotLayer({
@@ -91,9 +119,11 @@ export default function Home() {
                     type="text"
                     placeholder="Query"
                     className="p-2 border rounded bg-black text-white shadow w-32"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
                 />
+                <button onClick={handleQuertyChange} value={query}>Search!</button>
+                <p>Query Result: {queryResults}</p>
             </div>
             <div className="DeckGL">
             <DeckGL
