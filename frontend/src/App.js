@@ -2,8 +2,9 @@ import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, LineLayer } from '@deck.gl/layers';
 import { useState, useEffect } from 'react';
 import './components.css'
-import neo4j from 'neo4j-driver';
 // import * as Papa from 'papaparse';
+
+document.title = 'Project3';
 
 const INITIAL_VIEW_STATE = {
     longitude: 0,
@@ -24,36 +25,26 @@ export default function Home() {
         setNodes(undefined);
     };
 
-  
-  
-
-  const uri = 'bolt://localhost:7687';
-  const user = 'neo4j';
-  const password = 'PASSWORD';
-
-  const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
-
+  // Exxample query to get the number of nodes: MATCH(n) RETURN Count(n) AS nodeCount
   const handleQuertyChange = (event) => {
-    setQuery(event.target.value);
-    const session = driver.session();
-    console.log("Querying Neo4j...");
-    session.run(query)
-    .then(result => {
-        console.log(result.records[0].get('nodeCount').toNumber());
-        setQueryResults(result.records[0].get('nodeCount').toNumber());
-        })
-    .catch(error => {
-            console.error(error);
-            })
-    .finally(() => {
-            session.close();
-            driver.close();
-            });
-}
+    console.log(event.target.value);
+    fetch(`http://127.0.0.1:5000//query/${event.target.value}/`)
+      .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch(error =>
+        console.error('There has been a problem with your fetch operation:', error)
+      );
+  }
+
 
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000//${layout}`)
+    fetch(`http://127.0.0.1:5000//getlayout/${layout}`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
@@ -74,12 +65,15 @@ export default function Home() {
         //     return d.Node.toString().includes(query.trim());
         // });
 
-        
+
         const node_layer = new ScatterplotLayer({
             id: layout,
             data: filteredData, // temporary
             getPosition: d => [d[1], d[2]],
             getFillColor: [255, 0, 0],
+            pickable: true,
+            autoHighlight: true,
+            highlightColor: [0, 255, 0],
             getRadius: 100,
             radiusMinPixels: 5,
         });
@@ -123,7 +117,7 @@ export default function Home() {
                     onChange={(e) => setQuery(e.target.value)}
                 />
                 <button onClick={handleQuertyChange} value={query}>Search!</button>
-                <p>Query Result: {queryResults}</p>
+                <p>{queryResults}</p>
             </div>
             <div className="DeckGL">
             <DeckGL

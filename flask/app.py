@@ -3,7 +3,17 @@ import pandas as pd
 import networkx as nx
 import igraph as ig
 from flask_cors import CORS
+from neo4j import GraphDatabase
 
+# URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
+URI = 'bolt://localhost:7687'
+AUTH = ("neo4j", "PASSWORD")
+
+driver = GraphDatabase.driver(URI, auth=AUTH)
+
+# Verify connectivity when the application starts
+with driver.session() as session:
+    session.run("RETURN 1")
 
 # NOTE: At least on my local machine, Flask runs at http://127.0.0.1:5000/
 # TODO: Support more than just Frankenstein dataset from CSV.
@@ -13,8 +23,24 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Default route, defaults to "random as of yet"
-@app.route('/<layout_type>')
+# TODO: Neo4j route (FIX!)
+# Documentation I used: https://neo4j.com/docs/python-manual/current/
+@app.route('/query/<query_string>/')
+def query_neo4j(query_string: str):
+    """
+    Returns a JSON response with the data from the Neo4j database.
+
+    returns:
+        JSON response with the data from the Neo4j database.
+    """
+    with driver.session(database="neo4j") as session:
+        result = session.run(query_string)
+        data = [record.data() for record in result]
+
+    return jsonify(data)
+
+# Route for layouts
+@app.route('/getlayout/<layout_type>/')
 def visualize_igraph(layout_type: str = "random"):
     """
     Generates an igraph layout for a graph based on the data in 'frank_data.csv'.
@@ -104,8 +130,20 @@ def visualize_igraph(layout_type: str = "random"):
 
     # If you want edge coordinates (for plotting):
     edge_data = [ [layout[source], layout[target]] for source, target in edges ]
-
     return jsonify((node_data, edge_data))
+
+from flask import Flask, request, jsonify
+import atexit
+
+# Close the Neo4j driver when the application shuts down
+def close_driver():
+    if driver:
+        driver.close()
+
+atexit.register(close_driver)
+
+if __name__ == '__main__':
+    app.run()
 
 if __name__ == '__main__':
     app.run()
