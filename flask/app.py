@@ -23,7 +23,6 @@ with driver.session() as session:
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# TODO: Neo4j route (FIX!)
 # Documentation I used: https://neo4j.com/docs/python-manual/current/
 @app.route('/query/<query_string>/')
 def query_neo4j(query_string: str):

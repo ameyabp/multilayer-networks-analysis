@@ -35,6 +35,11 @@ export default function Home() {
       })
       .then((data) => {
         console.log(data);
+        if (data[0]['nodeCount'] !== undefined) {
+          setQueryResults("Node count: " + data[0]['nodeCount']);
+        } else {
+          setQueryResults("So, since this isn't a node count result, I don't have it set to print for now. You can find the result logged in the console though!");
+        }
       })
       .catch(error =>
         console.error('There has been a problem with your fetch operation:', error)
