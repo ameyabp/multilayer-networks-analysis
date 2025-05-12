@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-import pandas as pd
 import networkx as nx
 import igraph as ig
 from flask_cors import CORS
@@ -23,24 +22,10 @@ with driver.session() as session:
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Documentation I used: https://neo4j.com/docs/python-manual/current/
-@app.route('/query/<query_string>/')
-def query_neo4j(query_string: str):
-    """
-    Returns a JSON response with the data from the Neo4j database.
-
-    returns:
-        JSON response with the data from the Neo4j database.
-    """
-    with driver.session(database="neo4j") as session:
-        result = session.run(query_string)
-        data = [record.data() for record in result]
-
-    return jsonify(data)
-
 # Route for layouts
 @app.route('/getlayout/<layout_type>/')
-def visualize_igraph(layout_type: str = "random"):
+@app.route('/getlayout/<layout_type>/<query_string>/')
+def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target"""):
     """
     Generates an igraph layout for a graph based on the data in 'frank_data.csv'.
 
@@ -64,25 +49,28 @@ def visualize_igraph(layout_type: str = "random"):
     """    
 
     try:
-        df = pd.read_csv('frank_data.csv')
-    except FileNotFoundError:
-        print("Error: Uhhh... I do't see a 'frank_data.csv' file in this folder...")
-    
-    G = nx.Graph()
-    
-    # Add nodes and edges from the subset of data
-    for _, row in df.iterrows():
-        graph_id = row['graph_id']
-        nodes = row['nodes'].split(';')
-        edges = row['edges'].split(';') if isinstance(row['edges'], str) else []
+        # I would like to dedicate this code to Perplexity
+        CYPHER_QUERY = query_string
         
-        # Add nodes for this graph
-        G.add_nodes_from(nodes)
+        G = nx.Graph()
         
-        # Add edges for this graph
-        for edge in edges:
-            src, tgt = edge.split('-')
-            G.add_edge(src, tgt)
+        with driver.session() as session:
+            # Fetch data from Neo4j
+            result = session.run(CYPHER_QUERY)
+            
+            # Process results and build graph
+            for record in result:
+                src = record["source"]
+                tgt = record["target"]
+                G.add_node(src)
+                G.add_node(tgt)
+                G.add_edge(src, tgt)
+                
+    except Exception as e:
+        print(f"Neo4j connection error: {str(e)}")
+    finally:
+        if 'driver' in locals():
+            driver.close()
 
     # I created a NetworkX graph above, but the cool thing is we can convert it to an igraph graph so
     # it doesn't take 20 hours to process!

@@ -28,13 +28,14 @@ export default function Home() {
   // Exxample query to get the number of nodes: MATCH(n) RETURN Count(n) AS nodeCount
   const handleQuertyChange = (event) => {
     console.log(event.target.value);
-    fetch(`http://127.0.0.1:5000//query/${event.target.value}/`)
+    fetch(`http://127.0.0.1:5000//getlayout/${layout}/${query}/`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
       })
       .then((data) => {
-        console.log(data);
+        setNodes(data[0]);
+        setEdges(data[1]);
         if (data[0]['nodeCount'] !== undefined) {
           setQueryResults("Node count: " + data[0]['nodeCount']);
         } else {
@@ -49,7 +50,7 @@ export default function Home() {
 
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000//getlayout/${layout}`)
+    fetch(`http://127.0.0.1:5000//getlayout/${layout}/${query}`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
@@ -64,16 +65,11 @@ export default function Home() {
   }, [layout]);
 
     if (node_data !== undefined) {
-        /*TEMPORARY PLACEHOLDER*/
-        const filteredData = node_data //.filter(d => {
-        //     if (!query.trim()) return true;
-        //     return d.Node.toString().includes(query.trim());
-        // });
 
 
         const node_layer = new ScatterplotLayer({
             id: layout,
-            data: filteredData, // temporary
+            data: node_data,
             getPosition: d => [d[1], d[2]],
             getFillColor: [255, 0, 0],
             pickable: true,
