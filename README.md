@@ -25,4 +25,5 @@ If you have no data to visualize, we have an example demo you can try to see how
 
 * Implement Korean Highway demo (i.e. implement differentiation between coordinate and non-coordinate data)
 * Visualized querying
+* Implement global context so we can have components!
 * Multilayer & streaming data support.

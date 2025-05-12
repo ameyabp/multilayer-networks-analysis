@@ -15,10 +15,28 @@ const INITIAL_VIEW_STATE = {
 };
 
 export default function Home() {
+
+    /** Network's node data */
     const [node_data, setNodes] = useState(undefined);
+    /** Network's Edge data */
     const [edge_data, setEdges] = useState(undefined);
+    /** 
+     * 'searchQuery' is the query searched in the querybar
+     * 'query' is the query sent to Neo4j
+     * The querybar value is stored in 'searchQuery', and the true
+     * query sent to Neo4j is stored in 'query'. 'query' is not
+     * set to 'searchQuery' until the user clicks the "Run Query" button.
+     * This way, the query won't change between layouts or while typing!
+    */
+    const [searchQuery, setSearchQuery] = useState("");
     const [query, setQuery] = useState("");
-    const [queryResults, setQueryResults] = useState("");
+    /**
+     * Similar to subset size! I just added this for a cool demo for Tuesday,
+     * however we will need to change this once we componentize everything!
+     */
+    const [subsetInputSize, setSubsetInputSize] = useState("");
+    const [subsetSize, setSubsetSize] = useState("");
+    /** Graph layout */
     const [layout, setLayout] = useState("random");
     const handleLayoutChange = (event) => {
         setLayout(event.target.value);
@@ -26,47 +44,44 @@ export default function Home() {
     };
 
   // Exxample query to get the number of nodes: MATCH(n) RETURN Count(n) AS nodeCount
-  const handleQuertyChange = (event) => {
-    console.log(event.target.value);
-    fetch(`http://127.0.0.1:5000//getlayout/${layout}/${query}/`)
-      .then(response => {
-        if (!response.ok) throw new Error('Network error');
-        return response.json();
-      })
-      .then((data) => {
-        setNodes(data[0]);
-        setEdges(data[1]);
-        if (data[0]['nodeCount'] !== undefined) {
-          setQueryResults("Node count: " + data[0]['nodeCount']);
-        } else {
-          setQueryResults("So, since this isn't a node count result, I don't have it set to print for now. You can find the result logged in the console though!");
-        }
-      })
-      .catch(error =>
-        console.error('There has been a problem with your fetch operation:', error)
-      );
+  const handleQueryChange = (event) => {
+    setSearchQuery(event.target.value);
   }
 
-
+  // Exxample query to get the number of nodes: MATCH(n) RETURN Count(n) AS nodeCount
+  const handleSubsetSizeChange = (event) => {
+    setSubsetInputSize(event.target.value);
+  }
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000//getlayout/${layout}/${query}`)
+    /** 
+     * This might be the worse code I've written for this project yet! 
+     * BUT it works so we will have something to show for Tuesday
+    */
+    var args = `${layout}/${query}`
+    if (subsetSize !== "") {
+      if (query !== "") {
+        args += " LIMIT " + subsetSize;
+      } else {
+        args += "MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target LIMIT " + subsetSize;
+      }
+    }
+    fetch(`http://127.0.0.1:5000//getlayout/${args}`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
       })
       .then((data) => {
+        console.log(query);
         setNodes(data[0]);
         setEdges(data[1]);
       })
       .catch(error =>
         console.error('There has been a problem with your fetch operation:', error)
       );
-  }, [layout]);
+  }, [layout, query, subsetSize]);
 
     if (node_data !== undefined) {
-
-
         const node_layer = new ScatterplotLayer({
             id: layout,
             data: node_data,
@@ -108,17 +123,23 @@ export default function Home() {
                     <option value="davidson_harel">Davidson Harel</option>
                     <option value="sugiyama">Sugiyama</option>
                 </select>
-
-                {/*TEMPORARY PLACEHOLDER*/}
                 <input
                     type="text"
                     placeholder="Query"
                     className="p-2 border rounded bg-black text-white shadow w-32"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => handleQueryChange(e)}
                 />
-                <button onClick={handleQuertyChange} value={query}>Search!</button>
-                <p>{queryResults}</p>
+                <button onClick={() => setQuery(searchQuery)}>Run Query</button>
+                <button onClick={() => setSearchQuery("")}>Clear Query Search</button>
+                <input
+                    type="text"
+                    placeholder="Subset Size"
+                    className="p-2 border rounded bg-black text-white shadow w-32"
+                    value={subsetInputSize}
+                    onChange={(e) => handleSubsetSizeChange(e)}
+                />
+                <button onClick={() => setSubsetSize(subsetInputSize)}>Visualize Subset</button>
             </div>
             <div className="DeckGL">
             <DeckGL
