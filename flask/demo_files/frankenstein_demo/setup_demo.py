@@ -25,20 +25,30 @@ with driver.session() as session:
 def parse_and_import():
     # Read edge data from file
     edges = []
+    nodes = []
     with open('FRANKENSTEIN_EDGES.txt', 'r') as file:
         for line in file:
             source, target = line.strip().split(',')
             edges.append({'source': source, 'target': target})
+    with open('nodes.csv', 'r') as file:
+        for line in file:
+            node_id, graph_id = line.strip().split(',')
+            nodes.append({"id": node_id, "graph": graph_id})
 
     # Bulk import using Cypher
     with driver.session() as session:
-        query = """
+        edge_query = """
         UNWIND $edges AS edge
-        MERGE (s:Node {id: edge.source})
-        MERGE (t:Node {id: edge.target})
+        MATCH (s:Node {id: edge.source})
+        MATCH (t:Node {id: edge.target})
         MERGE (s)-[:CONNECTED_TO]->(t)
         """
-        session.run(query, edges=edges)
+        node_query = """
+        UNWIND $nodes AS nodes
+        CREATE (:Node {id: nodes.id, Graph_id: nodes.graph});
+        """
+        session.run(node_query, nodes=nodes)
+        session.run(edge_query, edges=edges)
 
     driver.close()
 
