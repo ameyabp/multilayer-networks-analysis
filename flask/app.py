@@ -3,6 +3,7 @@ import networkx as nx
 import igraph as ig
 from flask_cors import CORS
 from neo4j import GraphDatabase
+import atexit
 
 # URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
 URI = 'bolt://localhost:7687'
@@ -25,7 +26,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Route for layouts
 @app.route('/getlayout/<layout_type>/')
 @app.route('/getlayout/<layout_type>/<query_string>/')
-def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target"""):
+@app.route('/getlayout/<layout_type>/<query_string>/<limit>/')
+def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target""", limit: int = 1000000):
     """
     Generates an igraph layout for a graph based on the data in 'frank_data.csv'.
 
@@ -55,17 +57,21 @@ def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (
         G = nx.Graph()
         
         with driver.session() as session:
-            # Fetch data from Neo4j
-            result = session.run(CYPHER_QUERY)
-            
-            # Process results and build graph
-            for record in result:
-                src = record["source"]
-                tgt = record["target"]
-                G.add_node(src)
-                G.add_node(tgt)
-                G.add_edge(src, tgt)
-                
+                    CYPHER_QUERY = "MATCH(n) RETURN (n.id) LIMIT " + str(limit)
+                    result = session.run(CYPHER_QUERY)
+                    for record in result:
+                        G.add_node(record)
+                    # Fetch data from Neo4j
+                    result = session.run(query_string)
+                    # Process results and build graph
+                    for record in result:
+                        # CHANGE THIS
+                        src = record["source"]
+                        tgt = record["target"]
+                        G.add_node(src)
+                        G.add_node(tgt)
+                        G.add_edge(src, tgt)
+                        
     except Exception as e:
         print(f"Neo4j connection error: {str(e)}")
     finally:
@@ -119,18 +125,12 @@ def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (
     edge_data = [ [layout[source], layout[target]] for source, target in edges ]
     return jsonify((node_data, edge_data))
 
-from flask import Flask, request, jsonify
-import atexit
-
 # Close the Neo4j driver when the application shuts down
 def close_driver():
     if driver:
         driver.close()
 
 atexit.register(close_driver)
-
-if __name__ == '__main__':
-    app.run()
 
 if __name__ == '__main__':
     app.run()

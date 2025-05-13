@@ -30,6 +30,11 @@ export default function Home() {
     */
     const [searchQuery, setSearchQuery] = useState("");
     const [query, setQuery] = useState("");
+
+    // const [UI, setUI] = useState(false);
+    const handleAppendQuery = (text) => {
+        setSearchQuery(prevQuery => prevQuery + text);
+    };
     /**
      * Similar to subset size! I just added this for a cool demo for Tuesday,
      * however we will need to change this once we componentize everything!
@@ -43,6 +48,12 @@ export default function Home() {
         setNodes(undefined);
     };
 
+    const [queryOption, setQueryOption] = useState(null)
+    const handleQueryOption = (event) => {
+        setQueryOption(event.target.value)
+    }
+
+
   // Exxample query to get the number of nodes: MATCH(n) RETURN Count(n) AS nodeCount
   const handleQueryChange = (event) => {
     setSearchQuery(event.target.value);
@@ -54,16 +65,12 @@ export default function Home() {
   }
 
   useEffect(() => {
-    /** 
-     * This might be the worse code I've written for this project yet! 
-     * BUT it works so we will have something to show for Tuesday
-    */
     var args = `${layout}/${query}`
     if (subsetSize !== "") {
       if (query !== "") {
-        args += " LIMIT " + subsetSize;
+        args += " LIMIT " + subsetSize + "/" + subsetSize;
       } else {
-        args += "MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target LIMIT " + subsetSize;
+        args += "MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target LIMIT " + subsetSize + "/" + subsetSize;
       }
     }
     fetch(`http://127.0.0.1:5000//getlayout/${args}`)
@@ -123,6 +130,30 @@ export default function Home() {
                     <option value="davidson_harel">Davidson Harel</option>
                     <option value="sugiyama">Sugiyama</option>
                 </select>
+                <div>
+                    <button onClick={() => setQueryOption("manual")}>Manual</button>
+                    <button onClick={() => setQueryOption("assisted")}>Assisted</button>
+                </div>
+                {queryOption === "assisted" ? (
+                    <div>
+                    <div className="query-buttons">
+                        <button onClick={() => handleAppendQuery('MATCH (n) ')}>MATCH (n) </button>
+                        <button onClick={() => handleAppendQuery('RETURN n.id AS source, m.id AS target')}>RETURN nodes</button>
+                        <button onClick={() => handleAppendQuery('WHERE n.property = "value"')}>WHERE clause</button>
+                        {/*<button onClick={() => handleAppendQuery('LIMIT 10')}>LIMIT 10</button>*/}
+                        <button onClick={() => handleAppendQuery('MATCH (n)-[r]->(m)')}>MATCH relationships</button>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Subset Size"
+                        className="p-2 border rounded bg-black text-white shadow w-32"
+                        value={subsetInputSize}
+                        onChange={(e) => handleSubsetSizeChange(e)}
+                    />
+                    <button onClick={() => setSubsetSize(subsetInputSize)}>Visualize Subset</button>
+                </div>) : queryOption === "manual" ? (
+                    <div></div>
+                ) : (<p>Please select a mode (Manual or Assisted) to get started.</p>)}
                 <input
                     type="text"
                     placeholder="Query"
@@ -132,14 +163,7 @@ export default function Home() {
                 />
                 <button onClick={() => setQuery(searchQuery)}>Run Query</button>
                 <button onClick={() => setSearchQuery("")}>Clear Query Search</button>
-                <input
-                    type="text"
-                    placeholder="Subset Size"
-                    className="p-2 border rounded bg-black text-white shadow w-32"
-                    value={subsetInputSize}
-                    onChange={(e) => handleSubsetSizeChange(e)}
-                />
-                <button onClick={() => setSubsetSize(subsetInputSize)}>Visualize Subset</button>
+                
             </div>
             <div className="DeckGL">
             <DeckGL
@@ -151,11 +175,13 @@ export default function Home() {
             </div>
         </div>
         );
-    } else if (edge_data){
+    } 
+    else if (edge_data){
         /** While we're waiting for the Flask call */
         return <p>Rerendering with new layout...</p>
-    } else {
+    } 
+    else {
         return <p>Loading...</p>;
     }
 
-}
+  }
