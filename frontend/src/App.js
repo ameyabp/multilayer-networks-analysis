@@ -29,7 +29,7 @@ export default function Home() {
      * This way, the query won't change between layouts or while typing!
     */
     const [searchQuery, setSearchQuery] = useState("");
-    const [query, setQuery] = useState("");
+    const [query, setQuery] = useState("GET_EVERYTHING");
 
     // const [UI, setUI] = useState(false);
     const handleAppendQuery = (text) => {
@@ -68,9 +68,9 @@ export default function Home() {
     var args = `${layout}/${query}`
     if (subsetSize !== "") {
       if (query !== "") {
-        args += " LIMIT " + subsetSize + "/" + subsetSize;
+        args += "/" + subsetSize;
       } else {
-        args += "MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target LIMIT " + subsetSize + "/" + subsetSize;
+        args += "GET_EVERYTHING" + "/" + subsetSize;
       }
     }
     fetch(`http://127.0.0.1:5000//getlayout/${args}`)
@@ -138,10 +138,11 @@ export default function Home() {
                     <div>
                     <div className="query-buttons">
                         <button onClick={() => handleAppendQuery('MATCH (n) ')}>MATCH (n) </button>
-                        <button onClick={() => handleAppendQuery('RETURN n.id AS source, m.id AS target')}>RETURN nodes</button>
-                        <button onClick={() => handleAppendQuery('WHERE n.property = "value"')}>WHERE clause</button>
+                        <button onClick={() => handleAppendQuery('RETURN n.id AS source, m.id AS target ')}>RETURN nodes</button>
+                        <button onClick={() => handleAppendQuery('WHERE n.property = "value" ')}>WHERE clause</button>
                         {/*<button onClick={() => handleAppendQuery('LIMIT 10')}>LIMIT 10</button>*/}
-                        <button onClick={() => handleAppendQuery('MATCH (n)-[r]->(m)')}>MATCH relationships</button>
+                        <button onClick={() => handleAppendQuery('MATCH (n)-[r]->(m) ')}>MATCH relationships</button>
+                        <button onClick={() => setQuery("GET_EVERYTHING")}>GET EVERYTHING</button>
                     </div>
                     <input
                         type="text"

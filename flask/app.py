@@ -56,21 +56,50 @@ def visualize_igraph(layout_type: str = "random", query_string: str = """MATCH (
         
         G = nx.Graph()
         
-        with driver.session() as session:
-                    CYPHER_QUERY = "MATCH(n) RETURN (n.id) LIMIT " + str(limit)
-                    result = session.run(CYPHER_QUERY)
-                    for record in result:
-                        G.add_node(record)
-                    # Fetch data from Neo4j
-                    result = session.run(query_string)
-                    # Process results and build graph
-                    for record in result:
-                        # CHANGE THIS
-                        src = record["source"]
-                        tgt = record["target"]
-                        G.add_node(src)
-                        G.add_node(tgt)
-                        G.add_edge(src, tgt)
+
+        ######################################################################
+        # Potential Soluitions For Querying:
+        # - Parsing the query string to find return type? (i.e. edges or node)
+        # - Differentiating between querys upon return from Neo4j database?
+        #      - Could make helper functions for each type of query?
+        ######################################################################
+
+        if query_string == "GET_EVERYTHING":
+        # No matter what, save this as it returns everything in the database!
+            with driver.session() as session:
+                        CYPHER_QUERY = "MATCH(n) RETURN (n.id) LIMIT " + str(limit)
+                        result = session.run(CYPHER_QUERY)
+                        for record in result:
+                            G.add_node(record)
+                        # Fetch data from Neo4j
+                        CYPHER_QUERY = "MATCH (n)-[r]->(m) RETURN n.id AS source, m.id AS target LIMIT " + str(limit)
+                        result = session.run(CYPHER_QUERY)
+                        # Process results and build graph
+                        for record in result:
+                            # CHANGE THIS
+                            src = record["source"]
+                            tgt = record["target"]
+                            G.add_node(src)
+                            G.add_node(tgt)
+                            G.add_edge(src, tgt)
+        else:
+            isEdgeQuery = False
+            if "AS source" in query_string and "AS target" in query_string:
+                isEdgeQuery = True
+            if isEdgeQuery:
+                result = session.run(query_string)
+                # Process results and build graph
+                for record in result:
+                    # CHANGE THIS
+                    src = record["source"]
+                    tgt = record["target"]
+                    G.add_node(src)
+                    G.add_node(tgt)
+                    G.add_edge(src, tgt)
+            else:
+                result = session.run(query_string)
+                for record in result:
+                    G.add_node(record)
                         
     except Exception as e:
         print(f"Neo4j connection error: {str(e)}")
