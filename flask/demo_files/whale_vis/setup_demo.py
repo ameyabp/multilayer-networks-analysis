@@ -57,7 +57,7 @@ def parse_and_import():
     with driver.session() as session:
         query = """
         UNWIND $nodes AS nodes
-        CREATE (:Node {CBt: toFloat(nodes.CBt), Day: toFloat(nodes.Day), Mon: toFloat(nodes.Mon), Year: toFloat(nodes.Year), Sp: toFloat(nodes.Sp), Len: toFloat(nodes.Len), Lu: toFloat(nodes.Lu), Sx: toFloat(nodes.Sx), NoF: toFloat(nodes.NoF), F1L: toFloat(nodes.F1L), F1S: toFloat(nodes.F1S), F2L:toFloat( nodes.F2L), F2S: toFloat(nodes.F2S), Fu: toFloat(nodes.Fu), Latitude: toFloat(nodes.Lat), Longitude: toFloat(nodes.Lon), Exp: toFloat(nodes.Exp), SumEx: toFloat(nodes.SumEx), Nt: toFloat(nodes.Nt), Sco: toFloat(nodes.Sco)})
+        CREATE (:Node {CBt: toFloat(nodes.CBt), Day: toFloat(nodes.Day), Mon: toFloat(nodes.Mon), Year: toFloat(nodes.Year), Sp: toFloat(nodes.Sp), Len: toFloat(nodes.Len), Lu: toFloat(nodes.Lu), Sx: toFloat(nodes.Sx), NoF: toFloat(nodes.NoF), F1L: toFloat(nodes.F1L), F1S: toFloat(nodes.F1S), F2L:toFloat( nodes.F2L), F2S: toFloat(nodes.F2S), Fu: toFloat(nodes.Fu), latitude: toFloat(nodes.Lat), longitude: toFloat(nodes.Lon), Exp: toFloat(nodes.Exp), SumEx: toFloat(nodes.SumEx), Nt: toFloat(nodes.Nt), Sco: toFloat(nodes.Sco)})
         """
         session.run(query, nodes=nodes)
 
