@@ -20,7 +20,8 @@ driver = GraphDatabase.driver(URI, auth=AUTH)
 
 # Verify connectivity when the application starts
 with driver.session() as session:
-    session.run("RETURN 1")
+    result = session.run("RETURN 1")
+    print(result.single())
 
 def parse_and_import():
     # Read edge data from file
@@ -30,24 +31,24 @@ def parse_and_import():
         reader = csv.DictReader(file)
         for row in reader:
             nodes.append({
-                'CBt': row['CBt'],
+                'CBt': row["ï»¿CBt"],
                 'Day': row['Day'],
                 'Mon': row['Mon'],
                 'Year': row['Year'],
                 'Sp': row['Sp'],
                 'Len': row['Len'],
-                'L-u': row['L-u'],
+                'Lu': row['L-u'],
                 'Sx': row['Sx'],
                 'NoF': row['NoF'],
-                'F1-L': row['F1-L'],
-                'F1-S': row['F1-S'],
-                'F2-L': row['F2-L'],
-                'F2-S': row['F2-S'],
-                'F-u': row['F-u'],
+                'F1L': row['F1-L'],
+                'F1S': row['F1-S'],
+                'F2L': row['F2-L'],
+                'F2S': row['F2-S'],
+                'Fu': row['F-u'],
                 'Lat': row['Lat'],
                 'Lon': row['Lon'],
                 'Exp': row['Exp'],
-                'Sum-Ex': row['Sum-Ex'],
+                'SumEx': row['Sum-Ex'],
                 'Nt': row['Nt'],
                 'SCo': row['SCo'],
             })
@@ -56,7 +57,7 @@ def parse_and_import():
     with driver.session() as session:
         query = """
         UNWIND $nodes AS nodes
-        CREATE (:Node {CBt: toFloat(nodes.CBt), Day: toFloat(nodes.Day), Mon: toFloat(nodes.Mon), Year: toFloat(nodes.Year), Sp: toFloat(nodes.Sp), Len: toFloat(nodes.Len), L-u: toFloat(nodes.L-u), Sx: toFloat(nodes.Sx), NoF: toFloat(nodes.NoF), F1-L: toFloat(nodes.F1-L), F1-S: toFloat(nodes.F1-S), F2-L:toFloat( nodes.F2-L), F2-S: toFloat(nodes.F2-S), F-u: toFloat(nodes.F-u), Latitude: toFloat(nodes.Lat), Longitude: toFloat(nodes.Lon), Exp: toFloat(nodes.Exp), Sum-Ex: toFloat(nodes.Sum-Ex), Nt: toFloat(nodes.Nt), Sco: toFloat(nodes.Sco)})
+        CREATE (:Node {CBt: toFloat(nodes.CBt), Day: toFloat(nodes.Day), Mon: toFloat(nodes.Mon), Year: toFloat(nodes.Year), Sp: toFloat(nodes.Sp), Len: toFloat(nodes.Len), Lu: toFloat(nodes.Lu), Sx: toFloat(nodes.Sx), NoF: toFloat(nodes.NoF), F1L: toFloat(nodes.F1L), F1S: toFloat(nodes.F1S), F2L:toFloat( nodes.F2L), F2S: toFloat(nodes.F2S), Fu: toFloat(nodes.Fu), Latitude: toFloat(nodes.Lat), Longitude: toFloat(nodes.Lon), Exp: toFloat(nodes.Exp), SumEx: toFloat(nodes.SumEx), Nt: toFloat(nodes.Nt), Sco: toFloat(nodes.Sco)})
         """
         session.run(query, nodes=nodes)
 
