@@ -14,6 +14,8 @@ const INITIAL_VIEW_STATE = {
     bearing: 0
 };
 
+const FLASK_URI = "http://127.0.0.1:5000";
+
 export default function Home() {
 
     /** Network's node data */
@@ -30,6 +32,8 @@ export default function Home() {
     */
     const [searchQuery, setSearchQuery] = useState("");
     const [query, setQuery] = useState("GET_EVERYTHING");
+    const [useCoords, setUseCoords] = useState(false);
+
 
     // const [UI, setUI] = useState(false);
     const handleAppendQuery = (text) => {
@@ -64,6 +68,23 @@ export default function Home() {
     setSubsetInputSize(event.target.value);
   }
 
+    useEffect(() => {
+      const QUERY = "MATCH (n) RETURN n.latitude AS lat, n.longitude AS lon"
+      fetch(`${FLASK_URI}/getcoordinates/${QUERY}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data[0]);
+        setNodes(data[0]);
+        setEdges(data[1]);
+      })
+      .catch(error =>
+        console.error('There has been a problem with your fetch operation:', error)
+      );
+  }, [useCoords]);
+
   useEffect(() => {
     var args = `${layout}/${query}`
     if (subsetSize !== "") {
@@ -73,7 +94,7 @@ export default function Home() {
         args += "GET_EVERYTHING" + "/" + subsetSize;
       }
     }
-    fetch(`http://127.0.0.1:5000//getlayout/${args}`)
+    fetch(`${FLASK_URI}/getlayout/${args}`)
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
@@ -164,6 +185,7 @@ export default function Home() {
                 />
                 <button onClick={() => setQuery(searchQuery)}>Run Query</button>
                 <button onClick={() => setSearchQuery("")}>Clear Query Search</button>
+                <button onClick={() => setUseCoords(!useCoords)}>Use Coordinates</button>
                 
             </div>
             <div className="DeckGL">

@@ -1,67 +1,49 @@
 from neo4j import GraphDatabase
 import csv
 
-################################################################
-# This is the code to set up the whale_vis demo.
-# Setup:
-# 1. Make sure the URI and AUTH are correct for your Neo4j instance.
-# 2. Run the command 'python setup_demo.py' to import the data.
-# 3. Ensure that the Neo4j instance information is correct in Project3
-# and visalize whatever this dataset's supposed to be!
-# It takes a second... so uhhh you can probably add a limit to the query
-# to speed it up if you want.
-################################################################
-
-# URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
+# Configuration
 URI = 'bolt://localhost:7687'
-AUTH = ("neo4j", "PASSWORD")
+AUTH = ("neo4j", "PASSWORD")  # Replace with your actual password
 
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
-# Verify connectivity when the application starts
+# Verify connection
 with driver.session() as session:
     result = session.run("RETURN 1")
-    print(result.single())
+    print("Connected to Neo4j:", result.single())
+
+def safe_float(val):
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return None
 
 def parse_and_import():
-    # Read edge data from file
     nodes = []
-    
-    with open('NA 14-01-2024.csv', 'r') as file:
+
+    # Read only Lat and Lon from the CSV
+    with open('14-01-2024.csv', 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            nodes.append({
-                'CBt': row["ï»¿CBt"],
-                'Day': row['Day'],
-                'Mon': row['Mon'],
-                'Year': row['Year'],
-                'Sp': row['Sp'],
-                'Len': row['Len'],
-                'Lu': row['L-u'],
-                'Sx': row['Sx'],
-                'NoF': row['NoF'],
-                'F1L': row['F1-L'],
-                'F1S': row['F1-S'],
-                'F2L': row['F2-L'],
-                'F2S': row['F2-S'],
-                'Fu': row['F-u'],
-                'Lat': row['Lat'],
-                'Lon': row['Lon'],
-                'Exp': row['Exp'],
-                'SumEx': row['Sum-Ex'],
-                'Nt': row['Nt'],
-                'SCo': row['SCo'],
-            })
-            
-    # Bulk import using Cypher
+            lat = safe_float(row.get('Lat'))
+            lon = safe_float(row.get('Lon'))
+            if lat is not None and lon is not None:
+                nodes.append({
+                    'latitude': lat,
+                    'longitude': lon
+                })
+
+    # Import into Neo4j
     with driver.session() as session:
+        print(f"Importing {len(nodes)} nodes into Neo4j...")
         query = """
-        UNWIND $nodes AS nodes
-        CREATE (:Node {CBt: toFloat(nodes.CBt), Day: toFloat(nodes.Day), Mon: toFloat(nodes.Mon), Year: toFloat(nodes.Year), Sp: toFloat(nodes.Sp), Len: toFloat(nodes.Len), Lu: toFloat(nodes.Lu), Sx: toFloat(nodes.Sx), NoF: toFloat(nodes.NoF), F1L: toFloat(nodes.F1L), F1S: toFloat(nodes.F1S), F2L:toFloat( nodes.F2L), F2S: toFloat(nodes.F2S), Fu: toFloat(nodes.Fu), latitude: toFloat(nodes.Lat), longitude: toFloat(nodes.Lon), Exp: toFloat(nodes.Exp), SumEx: toFloat(nodes.SumEx), Nt: toFloat(nodes.Nt), Sco: toFloat(nodes.Sco)})
+        UNWIND $nodes AS node
+        CREATE (:Location {latitude: node.latitude, longitude: node.longitude})
         """
         session.run(query, nodes=nodes)
 
     driver.close()
+    print("Import complete.")
 
 if __name__ == '__main__':
     parse_and_import()
